@@ -34,10 +34,9 @@
   <div id="stats-content"></div>
 </div>
 <script type="module">
-  import { deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, onSnapshot, query, where, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, onSnapshot, doc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
   const firebaseConfig = {
     apiKey: "AIzaSyDzGayU8pmX9ll1zJ7IFh6h0-0hQRDYuXo",
     authDomain: "boulangerie-5dcf4.firebaseapp.com",
@@ -87,7 +86,7 @@ import { doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestor
   <h3>${author}</h3>
   <p>Pains: ${count}</p>
   <p>Moyenne: ${avg.toFixed(2)}/5</p>
-`;
+`; 
     statsPopup.style.display = 'block';
   }
 
@@ -106,22 +105,12 @@ import { doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestor
       pfp.onclick = () => showStats(d.author);
 
       const msg = document.createElement('div');
-msg.textContent = d.text;
+      msg.textContent = d.text;
 
-// Bouton poubelle
-const del = document.createElement('button');
-del.textContent = "🗑️";
-del.style.background = "transparent";
-del.style.border = "none";
-del.style.cursor = "pointer";
-del.style.color = "#ff69b4";
-del.onclick = () => deleteDoc(doc(db, "messages", docItem.id));
-
-div.appendChild(pfp);
-div.appendChild(msg);
-div.appendChild(del); // ← On ajoute la poubelle ici
-chat.appendChild(div);
+      div.appendChild(pfp);
+      div.appendChild(msg);
+      chat.appendChild(div);
     });
     chat.scrollTop = chat.scrollHeight;
   });
-</script>
+    </script>
