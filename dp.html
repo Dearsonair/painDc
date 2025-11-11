@@ -1,0 +1,73 @@
+<!DOCTYPE html><html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Discussion des Pains</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #000; color: #fff; margin: 0; display: flex; flex-direction: column; height: 100vh; }
+  header { background: #111; padding: 15px; text-align: center; color: #ff69b4; font-size: 22px; text-shadow: 0 0 8px #ff69b4; }
+  #chat-container { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
+  .message { display: flex; align-items: center; gap: 12px; background: #111; padding: 10px 14px; border-radius: 14px; border: 1px solid #ff69b4; box-shadow: 0 0 10px #ff69b4; max-width: 450px; }
+  .pfp { width: 42px; height: 42px; border-radius: 50%; background: rgba(255, 105, 180, 0.4); display: flex; align-items: center; justify-content: center; font-size: 20px; color: #ff69b4; cursor: pointer; }
+  #input-zone { display: flex; padding: 12px; background: #111; gap: 10px; }
+  select, input { padding: 8px 12px; border-radius: 8px; border: 1px solid #555; background: #000; color: #fff; }
+  button { padding: 8px 12px; border-radius: 8px; border: none; background: #ff69b4; cursor: pointer; }
+  #stats-popup { position: fixed; bottom: 20px; left: 20px; background: #111; padding: 20px; border-radius: 12px; border: 2px solid #ff69b4; box-shadow: 0 0 12px #ff69b4; display: none; }
+  #close-stats { background: transparent; border: none; color: #ff69b4; cursor: pointer; font-size: 18px; float: right; }
+</style>
+</head>
+<body>
+<header>💗 Discussion 💗</header>
+<div id="chat-container"></div>
+<div id="input-zone">
+  <select id="author-select">
+    <option value="Toxico🚬😎">Toxico🚬😎</option>
+    <option value="Falafel💄🤭">Falafel💄🤭</option>
+    <option value="Goumin🌸😘">Goumin🌸😘</option>
+    <option value="Mousieuh💅🤪">Mousieuh💅🤪</option>
+  </select>
+  <input type="text" id="message-input" placeholder="Message...">
+  <button id="send-btn">Envoyer</button>
+</div>
+<div id="stats-popup">
+  <button id="close-stats">✖</button>
+  <div id="stats-content"></div>
+</div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, collection, addDoc, onSnapshot, doc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";const firebaseConfig = { apiKey: "AIzaSyDzGayU8pmX9ll1zJ7IFh6h0-0hQRDYuXo", authDomain: "boulangerie-5dcf4.firebaseapp.com", projectId: "boulangerie-5dcf4", storageBucket: "boulangerie-5dcf4.firebasestorage.app", messagingSenderId: "930918869651", appId: "1:930918869651:web:14a5ab61066020b7213b66", measurementId: "G-B9SE4VKGKC" };
+
+const app = initializeApp(firebaseConfig); const db = getFirestore(app);
+
+const messagesRef = collection(db, "messages"); const painsRef = collection(db, "pains");
+
+const chat = document.getElementById('chat-container'); const input = document.getElementById('message-input'); const sendBtn = document.getElementById('send-btn'); const authorSelect = document.getElementById('author-select'); const statsPopup = document.getElementById('stats-popup'); const closeStats = document.getElementById('close-stats'); const statsContent = document.getElementById('stats-content');
+
+sendBtn.onclick = async () => { const text = input.value.trim(); const author = authorSelect.value; if (text !== '') { await addDoc(messagesRef, { author, text, time: Date.now() }); input.value = ''; } };
+
+function getInitial(author) { return author.charAt(0); }
+
+async function showStats(author) { const q = query(painsRef, where("author", "==", author)); const snap = await getDocs(q); const count = snap.size; let avg = 0; snap.forEach(d => avg += d.data().rating || 0); avg = count > 0 ? avg / count : 0; statsContent.innerHTML = <h3>${author}</h3><p>Pains: ${count}</p><p>Moyenne: ${avg.toFixed(2)}/5</p>; statsPopup.style.display = 'block'; }
+
+closeStats.onclick = () => statsPopup.style.display = 'none';
+
+onSnapshot(messagesRef, snapshot => { chat.innerHTML = ''; snapshot.docs.sort((a,b)=>a.data().time - b.data().time).forEach(docItem => { const d = docItem.data(); const div = document.createElement('div'); div.className = 'message';
+
+const pfp = document.createElement('div');
+  pfp.className = 'pfp';
+  pfp.textContent = getInitial(d.author);
+  pfp.onclick = () => showStats(d.author);
+
+  const msg = document.createElement('div');
+  msg.textContent = d.text;
+
+  div.appendChild(pfp);
+  div.appendChild(msg);
+  chat.appendChild(div);
+});
+chat.scrollTop = chat.scrollHeight;
+
+}); </script>
+
+</body>
+</html>
