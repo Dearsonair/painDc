@@ -35,39 +35,82 @@
 </div>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, onSnapshot, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";const firebaseConfig = { apiKey: "AIzaSyDzGayU8pmX9ll1zJ7IFh6h0-0hQRDYuXo", authDomain: "boulangerie-5dcf4.firebaseapp.com", projectId: "boulangerie-5dcf4", storageBucket: "boulangerie-5dcf4.firebasestorage.app", messagingSenderId: "930918869651", appId: "1:930918869651:web:14a5ab61066020b7213b66", measurementId: "G-B9SE4VKGKC" };
+  import { getFirestore, collection, addDoc, onSnapshot, doc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const app = initializeApp(firebaseConfig); const db = getFirestore(app);
+  const firebaseConfig = {
+    apiKey: "AIzaSyDzGayU8pmX9ll1zJ7IFh6h0-0hQRDYuXo",
+    authDomain: "boulangerie-5dcf4.firebaseapp.com",
+    projectId: "boulangerie-5dcf4",
+    storageBucket: "boulangerie-5dcf4.firebasestorage.app",
+    messagingSenderId: "930918869651",
+    appId: "1:930918869651:web:14a5ab61066020b7213b66",
+    measurementId: "G-B9SE4VKGKC"
+  };
 
-const messagesRef = collection(db, "messages"); const painsRef = collection(db, "pains");
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-const chat = document.getElementById('chat-container'); const input = document.getElementById('message-input'); const sendBtn = document.getElementById('send-btn'); const authorSelect = document.getElementById('author-select'); const statsPopup = document.getElementById('stats-popup'); const closeStats = document.getElementById('close-stats'); const statsContent = document.getElementById('stats-content');
+  const messagesRef = collection(db, "messages");
+  const painsRef = collection(db, "pains");
 
-sendBtn.addEventListener('click', async () => { const text = input.value.trim(); const author = authorSelect.value; if (text !== '') { try { await addDoc(messagesRef, { author, text, time: Date.now() }); input.value = ''; } catch(e) { console.error(e); } } });
+  const chat = document.getElementById('chat-container');
+  const input = document.getElementById('message-input');
+  const sendBtn = document.getElementById('send-btn');
+  const authorSelect = document.getElementById('author-select');
+  const statsPopup = document.getElementById('stats-popup');
+  const closeStats = document.getElementById('close-stats');
+  const statsContent = document.getElementById('stats-content');
 
-function getInitial(author) { return author.charAt(0); }
+  sendBtn.onclick = async () => {
+    const text = input.value.trim();
+    const author = authorSelect.value;
+    if (text !== '') {
+      await addDoc(messagesRef, { author, text, time: Date.now() });
+      input.value = '';
+    }
+  };
 
-async function showStats(author) { try { const q = query(painsRef, where("author", "==", author)); const snap = await getDocs(q); const count = snap.size; let avg = 0; snap.forEach(d => avg += d.data().rating || 0); avg = count > 0 ? avg / count : 0; statsContent.innerHTML = <h3>${author}</h3><p>Pains: ${count}</p><p>Moyenne: ${avg.toFixed(2)}/5</p>; statsPopup.style.display = 'block'; } catch(e) { console.error(e); } }
+  function getInitial(author) {
+    return author.charAt(0).toUpperCase();
+  }
 
-closeStats.addEventListener('click', () => statsPopup.style.display = 'none');
+  async function showStats(author) {
+    const q = query(painsRef, where("author", "==", author));
+    const snap = await getDocs(q);
+    const count = snap.size;
+    let avg = 0;
+    snap.forEach(d => avg += d.data().rating || 0);
+    avg = count > 0 ? avg / count : 0;
 
-onSnapshot(messagesRef, snapshot => { chat.innerHTML = ''; snapshot.docs.sort((a,b)=>a.data().time - b.data().time).forEach(docItem => { const d = docItem.data(); const div = document.createElement('div'); div.className = 'message';
+    statsContent.innerHTML = `
+      <h3>${author}</h3>
+      <p>Pains: ${count}</p>
+      <p>Moyenne: ${avg.toFixed(2)}/5</p>
+    `;
+    statsPopup.style.display = 'block';
+  }
 
-const pfp = document.createElement('div');
-  pfp.className = 'pfp';
-  pfp.textContent = getInitial(d.author);
-  pfp.addEventListener('click', () => showStats(d.author));
+  closeStats.onclick = () => statsPopup.style.display = 'none';
 
-  const msg = document.createElement('div');
-  msg.textContent = d.text;
+  onSnapshot(messagesRef, snapshot => {
+    chat.innerHTML = '';
+    snapshot.docs.sort((a, b) => a.data().time - b.data().time).forEach(docItem => {
+      const d = docItem.data();
+      const div = document.createElement('div');
+      div.className = 'message';
 
-  div.appendChild(pfp);
-  div.appendChild(msg);
-  chat.appendChild(div);
-});
-chat.scrollTop = chat.scrollHeight;
+      const pfp = document.createElement('div');
+      pfp.className = 'pfp';
+      pfp.textContent = getInitial(d.author);
+      pfp.onclick = () => showStats(d.author);
 
-}); </script>
+      const msg = document.createElement('div');
+      msg.textContent = d.text;
 
-</body>
-</html>
+      div.appendChild(pfp);
+      div.appendChild(msg);
+      chat.appendChild(div);
+    });
+    chat.scrollTop = chat.scrollHeight;
+  });
+</script>
